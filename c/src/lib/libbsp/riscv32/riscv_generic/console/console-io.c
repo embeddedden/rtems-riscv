@@ -70,9 +70,14 @@ static void __check_fromhost()
 
 static void __set_tohost(uintptr_t dev, uintptr_t cmd, uintptr_t data)
 {
-  while (tohost)
-    __check_fromhost();
-  tohost = TOHOST_CMD(dev, cmd, data);
+  magic_mem[0] = which;
+  magic_mem[1] = arg0;
+  magic_mem[2] = arg1;
+  magic_mem[3] = arg2;
+  __sync_synchronize();
+//  write_csr(mtohost, (long)magic_mem);
+//  while (swap_csr(mfromhost, 0) == 0);
+  return magic_mem[0];
 }
 
 int htif_console_getchar()
@@ -156,7 +161,7 @@ static void outbyte_console(char ch)
 
 static char inbyte_console(void)
 {
-
+    return 0;
 }
 
 /*
