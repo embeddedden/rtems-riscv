@@ -113,7 +113,8 @@ _loop_clear_bss:
   nop
 _end_clear_bss:
 
-  j boot_card
+  la s0, boot_card
+  jr s0
   nop
 
 bsp_start_vector_table_begin:
@@ -178,7 +179,7 @@ trap_entry:
   csrr a0, mcause
   csrr a1, mepc
   mv a2, sp
-  jal handle_trap
+  call handle_trap
   csrw mepc, a0
 
   LREG x1, 8(sp)

@@ -40,14 +40,14 @@ ENTRY (_start)
 
 MEMORY
 {
-	VECTOR						: ORIGIN = 0, LENGTH = 0x1000
-  RAM               : ORIGIN = 0x0000000, LENGTH = 0x01000000 /* 16MiB external RAM */
+    ROM      : ORIGIN = 0x20400000, LENGTH = 128M
+    RAM         : ORIGIN = 0x80000000, LENGTH = 64K /* 16KiB external RAM */
 }
 
 REGION_ALIAS ("REGION_VECTOR", RAM);
 REGION_ALIAS ("REGION_START", RAM);
-REGION_ALIAS ("REGION_TEXT", RAM);
-REGION_ALIAS ("REGION_TEXT_LOAD", RAM);
+REGION_ALIAS ("REGION_TEXT", ROM);
+REGION_ALIAS ("REGION_TEXT_LOAD", ROM);
 REGION_ALIAS ("REGION_RODATA", RAM);
 REGION_ALIAS ("REGION_RODATA_LOAD", RAM);
 REGION_ALIAS ("REGION_DATA", RAM);
@@ -59,8 +59,8 @@ REGION_ALIAS ("REGION_WORK", RAM);
 REGION_ALIAS ("REGION_STACK", RAM);
 
 /* The following address is used for text output */
-bsp_section_outbut_buffer = 0x8F800000;
-bsp_section_vector_begin  = 0x00000000;
+//bsp_section_outbut_buffer = 0x8F800000;
+bsp_section_vector_begin  = 0x20400000;
 
 /*
  * Global symbols that may be defined externally
