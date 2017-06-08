@@ -41,19 +41,19 @@ ENTRY (_start)
 MEMORY
 {
     ROM      : ORIGIN = 0x20400000, LENGTH = 128M
-    RAM         : ORIGIN = 0x80000000, LENGTH = 64K /* 16KiB external RAM */
+    RAM      : ORIGIN = 0x80000000, LENGTH = 64K /* 64KiB external RAM */
 }
 
 REGION_ALIAS ("REGION_VECTOR", RAM);
-REGION_ALIAS ("REGION_START", RAM);
+REGION_ALIAS ("REGION_START", ROM);
 REGION_ALIAS ("REGION_TEXT", ROM);
 REGION_ALIAS ("REGION_TEXT_LOAD", ROM);
-REGION_ALIAS ("REGION_RODATA", RAM);
-REGION_ALIAS ("REGION_RODATA_LOAD", RAM);
+REGION_ALIAS ("REGION_RODATA", ROM);
+REGION_ALIAS ("REGION_RODATA_LOAD", ROM);
 REGION_ALIAS ("REGION_DATA", RAM);
-REGION_ALIAS ("REGION_DATA_LOAD", RAM);
+REGION_ALIAS ("REGION_DATA_LOAD", ROM);
 REGION_ALIAS ("REGION_FAST_DATA", RAM);
-REGION_ALIAS ("REGION_FAST_DATA_LOAD", RAM);
+REGION_ALIAS ("REGION_FAST_DATA_LOAD", ROM);
 REGION_ALIAS ("REGION_BSS", RAM);
 REGION_ALIAS ("REGION_WORK", RAM);
 REGION_ALIAS ("REGION_STACK", RAM);
@@ -62,6 +62,8 @@ REGION_ALIAS ("REGION_STACK", RAM);
 //bsp_section_outbut_buffer = 0x8F800000;
 bsp_section_vector_begin  = 0x20400000;
 
+
+STACK_LENGTH = 0x1000;
 /*
  * Global symbols that may be defined externally
  */
@@ -347,7 +349,7 @@ SECTIONS {
      */
     . = ALIGN(8);
     bsp_section_work_begin = .;
-    . += ORIGIN (REGION_WORK) + LENGTH (REGION_WORK) - ABSOLUTE (.);
+    . += ORIGIN (REGION_WORK) + LENGTH (REGION_WORK) - ABSOLUTE (.) - STACK_LENGTH;
     . = ALIGN(8);
     bsp_section_work_end = .;
   } > REGION_WORK AT > REGION_WORK
@@ -360,7 +362,7 @@ SECTIONS {
     . = ALIGN(8);
     bsp_section_stack_end = .;
   } > REGION_STACK AT > REGION_STACK
-  bsp_section_stack_size = bsp_section_stack_begin - bsp_section_stack_end;
+  bsp_section_stack_size = bsp_section_stack_end - bsp_section_stack_begin;
 
   RamBase = ORIGIN (REGION_WORK);
   RamSize = LENGTH (REGION_WORK);

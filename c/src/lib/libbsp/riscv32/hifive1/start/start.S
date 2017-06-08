@@ -113,8 +113,8 @@ _loop_clear_bss:
   nop
 _end_clear_bss:
 
-  la s0, boot_card
-  jr s0
+  call boot_card
+  nop
   nop
 
 bsp_start_vector_table_begin:
