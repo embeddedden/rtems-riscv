@@ -124,6 +124,10 @@ SECTIONS {
     KEEP (*(.fini))
     . = ALIGN(8);
     bsp_section_text_end = .;
+    PROVIDE (__etext = .);
+    PROVIDE (_etext = .);
+    PROVIDE (etext = .);
+    
   } > REGION_TEXT AT > REGION_TEXT_LOAD
   bsp_section_text_size = bsp_section_text_end - bsp_section_text_begin;
   bsp_section_text_load_begin = LOADADDR (.text);
@@ -304,33 +308,36 @@ SECTIONS {
                KEEP (*(SORT(.rtemsroset.*)))
                . = ALIGN(8);
                bsp_section_rodata_end = .;
+		__data_start_rom = .;
        } > REGION_RODATA AT > REGION_RODATA_LOAD
   bsp_section_rodata_size = bsp_section_rodata_end - bsp_section_rodata_begin;
   bsp_section_rodata_load_begin = LOADADDR (.rodata);
   bsp_section_rodata_load_end = bsp_section_rodata_load_begin + bsp_section_rodata_size;
 
-.rwbarrier :   {
-    . = ALIGN(8);
-    . = ALIGN (bsp_section_rwbarrier_align);
-  } > REGION_DATA AT > REGION_DATA
 
-.data :   {
+
+.data :  AT (__data_start_rom) {
     . = ALIGN(8);
     bsp_section_data_begin = .;
-    *(.data .data.* .gnu.linkonce.d.*)
+    PROVIDE (_copy_start = .);
+    *(.data .data.* .gnu.linkonce.d.* .data1)
     SORT(CONSTRUCTORS)
-  } > REGION_DATA AT > REGION_DATA_LOAD
-  .data1 :   {
-    *(.data1)
-  } > REGION_DATA AT > REGION_DATA_LOAD
-  .rtemsrwset :   {
+  } > REGION_DATA
+  .rtemsrwset : AT (__data_start_rom + SIZEOF (.data))  {
     KEEP (*(SORT(.rtemsrwset.*)))
     . = ALIGN(8);
-    bsp_section_data_end = .;
-  } > REGION_DATA AT > REGION_DATA_LOAD
+
+  } > REGION_DATA
   bsp_section_data_size = bsp_section_data_end - bsp_section_data_begin;
   bsp_section_data_load_begin = LOADADDR (.data);
   bsp_section_data_load_end = bsp_section_data_load_begin + bsp_section_data_size;
+
+.rwbarrier : AT (__data_start_rom + SIZEOF (.data) + SIZEOF (.rtemsrwset)) {
+    . = ALIGN(8);
+    . = ALIGN (bsp_section_rwbarrier_align);
+    bsp_section_data_end = .;
+    PROVIDE (_copy_end = .);
+  } > REGION_DATA
 
   .bss :   {
     . = ALIGN(8);

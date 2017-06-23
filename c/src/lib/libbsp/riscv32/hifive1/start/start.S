@@ -112,6 +112,27 @@ _loop_clear_bss:
   j     _loop_clear_bss
   nop
 _end_clear_bss:
+    
+
+/* Copy data */
+  la t0, _copy_start
+  la t1, _copy_end
+  la t3, __data_start_rom
+
+_loop_copy_data:
+  bge t0, t1, _end_copy_data
+  addi t0, t0, 1
+  addi t3, t3, 1
+  lb  t4, 0(t3)
+  sb   t4, 0(t0)
+  j    _loop_copy_data
+  nop
+_end_copy_data:
+
+
+  nop
+  nop
+  
 
   call boot_card
   nop
