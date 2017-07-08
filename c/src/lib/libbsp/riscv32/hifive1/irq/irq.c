@@ -60,3 +60,67 @@ rtems_status_code bsp_interrupt_vector_disable(rtems_vector_number vector)
 {
   return 0;
 }
+
+void Machine_SW_ISR ()
+{
+    while (1);
+}
+
+void Machine_Tmr_ISR ()
+{
+    while(1);
+}
+
+void Machine_External_ISR ()
+{
+    while(1);
+}
+
+static uint32_t cntr = 0;
+static uint32_t cntr1 = 0;
+static uint32_t cntr2 = 0;
+static uint32_t excep = 0; 
+static uint32_t times[10];
+
+void handle_trap_new ()
+{
+    
+    int cause, mie, mip;
+    int time_val = 0;
+    asm volatile ("csrr %0, mcause": "=r" (cause));
+    asm volatile ("csrr %0, mie": "=r" (mie));
+    asm volatile ("csrr %0, mip": "=r" (mip));
+    volatile uint64_t * mtime = (uint64_t *)0x0200bff8;
+    if (cause & MCAUSE_INT) { 
+      /* an interrupt occurred */
+      if (cause & MCAUSE_MTIME) {
+	/* Timer interrupt */
+	asm volatile ("csrci mie, 0x80");
+	asm volatile ("csrr %0, mie": "=r" (mie));
+	asm volatile ("csrr %0, mip": "=r" (mip));
+	volatile uint64_t * mtimecmp = (uint64_t *)0x02004000;
+	*mtimecmp = *mtime + 0x300;
+        if (cntr < 10) 
+	  times[cntr] = *mtime;
+	cntr++;
+        asm volatile ("csrsi mie, 0x80");
+        asm volatile ("csrr %0, mip": "=r" (mip));	
+      } else if (cause & MCAUSE_MEXT) {
+	/*External interrupt */
+        cntr1 += 1;
+      } else if (cause & MCAUSE_MSWI) {
+	/* Software interrupt */
+	volatile uint32_t * msip_reg = 0x02000000;
+	*msip_reg = 0;
+	cntr2 += 1;
+      }
+    } else {
+      /* an exception occurred */
+      excep += 1; /* Exception occurred */
+    }
+
+
+
+
+
+}

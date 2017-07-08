@@ -29,6 +29,14 @@
 # define LREG lw
 # define SREG sw
 
+#define CLINT_BASE 0x02000000
+#define MTIME_OFFSET 0xBFF8
+#define MTIMECMP_OFFSET 0x4000
+#define MTIME_REG CLINT_BASE+MTIME_OFFSET
+#define MTIMECMP CLINT_BASE+MTIMECMP_OFFSET
+
+#define REGBYTES 4
+
 EXTERN(bsp_section_bss_begin)
 EXTERN(bsp_section_bss_end)
 EXTERN(ISR_Handler)
@@ -37,32 +45,14 @@ EXTERN(bsp_start_vector_table_size)
 EXTERN(bsp_vector_table_size)
 EXTERN(bsp_section_stack_begin)
 
+
+
 PUBLIC(RISCV_Exception_default)
-PUBLIC(bsp_start_vector_table_begin)
+/* PUBLIC(bsp_start_vector_table_begin) */ 
 PUBLIC(_start)
 
 .section .vector, "ax"
-/* 0x100 user-level trap */
-  #mrts
-  #la s0, 0xF0000000
-  #jr  s0
-/* 0x140 supervisor level trap */
-  .align 6
-  #mrts
-  la s0, trap_entry
-  jr s0
-/* 0x1C0 Machine level trap */
-  .align 6
-  la s0, trap_entry
-  jr s0
-/* 0x1FC external interrupt */
-  .align 6
-  la s0, trap_entry
-  jr s0
-/* 0x200 reset */
-  .align 6
-  la s0, _start
-  jr s0
+
 
 .section .start, "wax"
 TYPE_FUNC(_start)
@@ -101,6 +91,8 @@ SYM(_start):
   /* load stack and frame pointers */
   la sp, bsp_section_stack_begin
 
+
+  
 /* Clearing .bss */
   la t0, bsp_section_bss_begin
   la t1, bsp_section_bss_end
@@ -130,25 +122,55 @@ _loop_copy_data:
 _end_copy_data:
 
 
-  nop
+/* Enable interrupts in mie register (not enabled in mstatus yet) */
+  la t0, RISCV_Exception_default
+  csrs mtvec, t0
+  li t0, 0x88
+  csrs mie, t0
+  csrsi mstatus, 0x8
+  
+
+irq_gen:
+  sw t0, 0(t1)
+  li t2, MTIME_REG
+  li t4, 0x1
+  lw t0, 0(t2)
+  add t0, t0, t4
+  li t3, MTIMECMP
+  sw t0, 0(t3)
+  
+  li t3, 0x02000000
+  li t4, 0x1
+  sw t4, 0(t3)
   nop
   
 
+
   call boot_card
   nop
-  nop
+
+
+
 
 bsp_start_vector_table_begin:
-  .word .normal_start /* Reset */
-  .word RISCV_Exception_default /* SW exception */
-  .word RISCV_Exception_default /* Data Page Fault */
-  .word RISCV_Exception_default /* Timer 0 */
-  .word RISCV_Exception_default /* Timer 1 */
-  .word RISCV_Exception_default /* Message int */
-  .word RISCV_Exception_default /* DMA0 int */
-  .word RISCV_Exception_default /* DMA1 int */
-  .word RISCV_Exception_default /* WAND */
-  .word RISCV_Exception_default /* User interrupt */
+
+  .word RISCV_Exception_default /* bad_trap */
+  .word RISCV_Exception_default /* pmp_trap */
+  .word RISCV_Exception_default /* illegal_insn_trap */
+  .word RISCV_Exception_default /* bad_trap */
+  .word RISCV_Exception_default /* misaligned_load_trap */
+  .word RISCV_Exception_default /* pmp_trap */
+  .word RISCV_Exception_default /* misaligned_store_trap */
+  .word RISCV_Exception_default /* pmp_trap */
+  .word RISCV_Exception_default /* bad_trap */
+  .word RISCV_Exception_default /* mcall_trap*/
+  .word RISCV_Exception_default /* bad_trap */
+  .word RISCV_Exception_default /* bad_trap */
+  .word RISCV_Exception_default /* bad_trap */
+#define TRAP_FROM_MACHINE_MODE_VECTOR 13
+  .word RISCV_Exception_default /* __trap_from_machine_mode */
+  .word RISCV_Exception_default /*bad_trap  */
+  .word RISCV_Exception_default /* bad_trap */
 
 bsp_start_vector_table_end:
 
@@ -158,83 +180,88 @@ bsp_start_vector_table_end:
 .type   _external_start, %function
 .normal_start:
 
+
 .balign 4
 TYPE_FUNC(RISCV_Exception_default)
 SYM(RISCV_Exception_default):
   nop
 trap_entry:
 	nop
-  addi sp, sp, -272
-  SREG x1, 8(sp)
-  SREG x2, 16(sp)
-  SREG x3, 24(sp)
-  SREG x4, 32(sp)
-  SREG x5, 40(sp)
-  SREG x6, 48(sp)
-  SREG x7, 56(sp)
-  SREG x8, 64(sp)
-  SREG x9, 72(sp)
-  SREG x10, 80(sp)
-  SREG x11, 88(sp)
-  SREG x12, 96(sp)
-  SREG x13, 104(sp)
-  SREG x14, 112(sp)
-  SREG x15, 120(sp)
-  SREG x16, 128(sp)
-  SREG x17, 136(sp)
-  SREG x18, 144(sp)
-  SREG x19, 152(sp)
-  SREG x20, 160(sp)
-  SREG x21, 168(sp)
-  SREG x22, 176(sp)
-  SREG x23, 184(sp)
-  SREG x24, 192(sp)
-  SREG x25, 200(sp)
-  SREG x26, 208(sp)
-  SREG x27, 216(sp)
-  SREG x28, 224(sp)
-  SREG x29, 232(sp)
-  SREG x30, 240(sp)
-  SREG x31, 248(sp)
+  addi sp, sp, -32*REGBYTES
+  SREG x1, 1*REGBYTES(sp)
+  SREG x2, 2*REGBYTES(sp)
+  SREG x3, 3*REGBYTES(sp)
+  SREG x4, 4*REGBYTES(sp)
+  SREG x5, 5*REGBYTES(sp)
+  SREG x6, 6*REGBYTES(sp)
+  SREG x7, 7*REGBYTES(sp)
+  SREG x8, 8*REGBYTES(sp)
+  SREG x9, 9*REGBYTES(sp)
+  SREG x10, 10*REGBYTES(sp)
+  SREG x11, 11*REGBYTES(sp)
+  SREG x12, 12*REGBYTES(sp)
+  SREG x13, 13*REGBYTES(sp)
+  SREG x14, 14*REGBYTES(sp)
+  SREG x15, 15*REGBYTES(sp)
+  SREG x16, 16*REGBYTES(sp)
+  SREG x17, 17*REGBYTES(sp)
+  SREG x18, 18*REGBYTES(sp)
+  SREG x19, 19*REGBYTES(sp)
+  SREG x20, 20*REGBYTES(sp)
+  SREG x21, 21*REGBYTES(sp)
+  SREG x22, 22*REGBYTES(sp)
+  SREG x23, 23*REGBYTES(sp)
+  SREG x24, 24*REGBYTES(sp)
+  SREG x25, 25*REGBYTES(sp)
+  SREG x26, 26*REGBYTES(sp)
+  SREG x27, 27*REGBYTES(sp)
+  SREG x28, 28*REGBYTES(sp)
+  SREG x29, 29*REGBYTES(sp)
+  SREG x30, 30*REGBYTES(sp)
+  SREG x31, 31*REGBYTES(sp)
 
   csrr a0, mcause
   csrr a1, mepc
   mv a2, sp
-  call handle_trap
+  call handle_trap_new
   csrw mepc, a0
 
-  LREG x1, 8(sp)
-  LREG x2, 16(sp)
-  LREG x3, 24(sp)
-  LREG x4, 32(sp)
-  LREG x5, 40(sp)
-  LREG x6, 48(sp)
-  LREG x7, 56(sp)
-  LREG x8, 64(sp)
-  LREG x9, 72(sp)
-  LREG x10, 80(sp)
-  LREG x11, 88(sp)
-  LREG x12, 96(sp)
-  LREG x13, 104(sp)
-  LREG x14, 112(sp)
-  LREG x15, 120(sp)
-  LREG x16, 128(sp)
-  LREG x17, 136(sp)
-  LREG x18, 144(sp)
-  LREG x19, 152(sp)
-  LREG x20, 160(sp)
-  LREG x21, 168(sp)
-  LREG x22, 176(sp)
-  LREG x23, 184(sp)
-  LREG x24, 192(sp)
-  LREG x25, 200(sp)
-  LREG x26, 208(sp)
-  LREG x27, 216(sp)
-  LREG x28, 224(sp)
-  LREG x29, 232(sp)
-  LREG x30, 240(sp)
-  LREG x31, 248(sp)
 
-  addi sp, sp, 272
+  li t0, 0x00001800
+  csrs mstatus, t0
+
+  LREG x1, 1*REGBYTES(sp)
+  LREG x2, 2*REGBYTES(sp)
+  LREG x3, 3*REGBYTES(sp)
+  LREG x4, 4*REGBYTES(sp)
+  LREG x5, 5*REGBYTES(sp)
+  LREG x6, 6*REGBYTES(sp)
+  LREG x7, 7*REGBYTES(sp)
+  LREG x8, 8*REGBYTES(sp)
+  LREG x9, 9*REGBYTES(sp)
+  LREG x10, 10*REGBYTES(sp)
+  LREG x11, 11*REGBYTES(sp)
+  LREG x12, 12*REGBYTES(sp)
+  LREG x13, 13*REGBYTES(sp)
+  LREG x14, 14*REGBYTES(sp)
+  LREG x15, 15*REGBYTES(sp)
+  LREG x16, 16*REGBYTES(sp)
+  LREG x17, 17*REGBYTES(sp)
+  LREG x18, 18*REGBYTES(sp)
+  LREG x19, 19*REGBYTES(sp)
+  LREG x20, 20*REGBYTES(sp)
+  LREG x21, 21*REGBYTES(sp)
+  LREG x22, 22*REGBYTES(sp)
+  LREG x23, 23*REGBYTES(sp)
+  LREG x24, 24*REGBYTES(sp)
+  LREG x25, 25*REGBYTES(sp)
+  LREG x26, 26*REGBYTES(sp)
+  LREG x27, 27*REGBYTES(sp)
+  LREG x28, 28*REGBYTES(sp)
+  LREG x29, 29*REGBYTES(sp)
+  LREG x30, 30*REGBYTES(sp)
+  LREG x31, 31*REGBYTES(sp) 
+
+  addi sp, sp, 32*REGBYTES
 
   mret

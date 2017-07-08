@@ -40,12 +40,12 @@ ENTRY (_start)
 
 MEMORY
 {
-    ROM      : ORIGIN = 0x20400000, LENGTH = 128M
+    ROM      : ORIGIN = 0x20400000, LENGTH = 16M
     RAM      : ORIGIN = 0x80000000, LENGTH = 16K /* 64KiB external RAM, but gdb knows only about 16 KiB */
     ITIM     : ORIGIN = 0x08000000, LENGTH = 8K
 }
 
-REGION_ALIAS ("REGION_VECTOR", RAM);
+REGION_ALIAS ("REGION_VECTOR", ROM);
 REGION_ALIAS ("REGION_START", ROM);
 REGION_ALIAS ("REGION_TEXT", ROM);
 REGION_ALIAS ("REGION_TEXT_LOAD", ROM);
@@ -61,7 +61,7 @@ REGION_ALIAS ("REGION_STACK", RAM);
 
 /* The following address is used for text output */
 /* bsp_section_outbut_buffer = 0x8F800000; */
-bsp_section_vector_begin  = 0x20400000;
+ bsp_section_vector_begin  = 0x20400000;
 
 
 STACK_LENGTH = 0;

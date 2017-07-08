@@ -45,5 +45,13 @@
 #define BSP_INTERRUPT_VECTOR_MIN  0x0
 #define BSP_INTERRUPT_VECTOR_MAX  0x24
 
+
+#define MCAUSE_INT 0x80000000
+
+#define MCAUSE_MSWI 0x3
+#define MCAUSE_MTIME 0x7
+#define MCAUSE_MEXT 0xB
+
+
 #endif /* ASM */
 #endif /* LIBBSP_GENERIC_RISCV_IRQ_H */
