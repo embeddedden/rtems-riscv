@@ -122,21 +122,22 @@ _loop_copy_data:
 _end_copy_data:
 
 
-/* Enable interrupts in mie register (not enabled in mstatus yet) */
-  la t0, RISCV_Exception_default
-  csrs mtvec, t0
-  li t0, 0x88
-  csrs mie, t0
-  csrsi mstatus, 0x8
   
 
 irq_gen:
-  sw t0, 0(t1)
+/*  sw t0, 0(t1) */
   li t2, MTIME_REG
-  li t4, 0x1
+  li t4, 0x300
   lw t0, 0(t2)
   add t0, t0, t4
-  li t3, MTIMECMP
+  li t3, MTIMECMP 
+  sw t0, 0(t3)
+
+/* copy MSB of mtime */
+  addi t3, t3, 4
+  addi t2, t2, 4
+/* race condition may arise here */
+  lw t0, 0(t2)
   sw t0, 0(t3)
   
   li t3, 0x02000000
@@ -145,6 +146,12 @@ irq_gen:
   nop
   
 
+/* Enable interrupts in mie register (not enabled in mstatus yet) */
+  la t0, RISCV_Exception_default
+  csrw mtvec, t0
+  li t0, 0x88
+  csrs mie, t0
+  csrsi mstatus, 0x8
 
   call boot_card
   nop
@@ -187,6 +194,7 @@ SYM(RISCV_Exception_default):
   nop
 trap_entry:
 	nop
+  csrci mstatus, 0x8
   addi sp, sp, -32*REGBYTES
   SREG x1, 1*REGBYTES(sp)
   SREG x2, 2*REGBYTES(sp)
@@ -263,5 +271,6 @@ trap_entry:
   LREG x31, 31*REGBYTES(sp) 
 
   addi sp, sp, 32*REGBYTES
+  csrsi mstatus, 0x8
 
   mret
