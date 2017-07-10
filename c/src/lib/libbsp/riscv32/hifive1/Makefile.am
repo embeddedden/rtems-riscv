@@ -30,6 +30,8 @@ include_bsp_HEADERS += ../../shared/include/irq-info.h
 include_bsp_HEADERS += ../../shared/include/stackalloc.h
 include_bsp_HEADERS += ../../shared/include/console-polled.h
 include_bsp_HEADERS += include/irq.h
+include_bsp_HEADERS += include/prci.h
+
 
 nodist_include_HEADERS = include/bspopts.h
 
@@ -54,6 +56,9 @@ noinst_LIBRARIES += libbsp.a
 # Startup
 libbsp_a_SOURCES = ../../shared/bspreset.c
 libbsp_a_SOURCES += ../../shared/bspstart.c
+
+# Start
+libbsp_a_SOURCES += start/prci.c
 
 # Shared
 libbsp_a_SOURCES += ../../shared/bootcard.c
