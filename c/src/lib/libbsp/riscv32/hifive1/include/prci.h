@@ -25,6 +25,9 @@
  * SUCH DAMAGE.
  */
 
+#ifndef PRCI_H
+#define PRCI_H
+
 /*
  * PRCI description for HiFive1 system
  */
@@ -35,6 +38,38 @@
 #define PRCI_PLLOUTDIV 0x1000800C
 #define PRCI_CORECLKCFG 0x10008010
 
-#define hifive1_default_freq 16000000  //16 MHz from external crystall oscillator
+//16 MHz from external crystall oscillator
+//#define hifive1_default_freq 278219980  
+#define hifive1_default_freq 16000000
+
+/* 
+ * HFROSCCFG configuration register values
+ */
+#define HFROSC_DIV_VAL 4
+#define HFROSC_TRIM_VAL 16
+#define HFROSC_EN_VAL 1
+#define HFROSC_RDY_VAL 1
+#define HFROSC_DIV_OFFSET 0
+#define HFROSC_TRIM_OFFSET 16
+#define HFROSC_EN_OFFSET 30
+#define HFROSC_RDY_OFFSET 31
+
+/* 
+ * HFXOSCCFG configuration register values
+ */
+#define HFXOSC_EN_VAL 1
+#define HFXOSC_RDY_VAL 1
+#define HFXOSC_EN_OFFSET 30
+#define HFXOSC_RDY_OFFSET 31
+
+
+
+/* 
+ * PLLCFG configuration register
+ */
+#define PLL_SEL_OFFSET 16
+
 
 static int hifive1_current_freq();
+
+#endif /* PRCI_H */

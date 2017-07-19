@@ -46,7 +46,7 @@ EXTERN(bsp_vector_table_size)
 EXTERN(bsp_section_stack_begin)
 
 
-
+.balign 4
 PUBLIC(RISCV_Exception_default)
 /* PUBLIC(bsp_start_vector_table_begin) */ 
 PUBLIC(_start)
@@ -127,7 +127,7 @@ _end_copy_data:
 irq_gen:
 /*  sw t0, 0(t1) */
   li t2, MTIME_REG
-  li t4, 0x300
+  li t4, 0x3000000
   lw t0, 0(t2)
   add t0, t0, t4
   li t3, MTIMECMP 
@@ -142,15 +142,16 @@ irq_gen:
   
   li t3, 0x02000000
   li t4, 0x1
-  sw t4, 0(t3)
+/*  sw t4, 0(t3) */
   nop
   
 
 /* Enable interrupts in mie register (not enabled in mstatus yet) */
   la t0, RISCV_Exception_default
   csrw mtvec, t0
-  li t0, 0x88
+  li t0, 0x008
   csrs mie, t0
+  csrci mie, 0x800
   csrsi mstatus, 0x8
 
   call boot_card
