@@ -113,10 +113,10 @@ _end_clear_bss:
 
 _loop_copy_data:
   bge t0, t1, _end_copy_data
-  addi t0, t0, 1
-  addi t3, t3, 1
   lb  t4, 0(t3)
   sb   t4, 0(t0)
+  addi t0, t0, 1
+  addi t3, t3, 1
   j    _loop_copy_data
   nop
 _end_copy_data:
