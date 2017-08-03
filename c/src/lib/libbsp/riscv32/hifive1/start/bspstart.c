@@ -22,6 +22,9 @@ void bsp_start( void )
   volatile uint32_t * high_freq_reg = (volatile uint32_t *) PRCI_HFROSCCFG;
   volatile uint32_t * spi0 = (volatile uint32_t *) 0x10014000;
 
+  volatile uint64_t * mtime_reg = (volatile uint64_t * ) 0x0200bff8;
+  volatile uint64_t * mtimecmp_reg = (volatile uint64_t * ) 0x02004000;
+
 #ifdef USE_HFROSC
   /* Setting up osc frequency */
   uint32_t tmp_reg = 0;
@@ -55,5 +58,8 @@ void bsp_start( void )
 #else 
 
 #endif
+
+  bsp_interrupt_initialize();
+
 }
-     
+  

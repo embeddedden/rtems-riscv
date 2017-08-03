@@ -123,11 +123,14 @@ _end_copy_data:
 
 
   
-
+/* 
+ * examples of generating clock and software interrupts.
+ * interrupts won't be generated because they are turned off
+ */
 irq_gen:
 /*  sw t0, 0(t1) */
   li t2, MTIME_REG
-  li t4, 0x3000000
+  li t4, 0x300000
   lw t0, 0(t2)
   add t0, t0, t4
   li t3, MTIMECMP 
@@ -149,10 +152,11 @@ irq_gen:
 /* Enable interrupts in mie register (not enabled in mstatus yet) */
   la t0, RISCV_Exception_default
   csrw mtvec, t0
-  li t0, 0x008
+  li t0, 0x088
   csrs mie, t0
-  csrci mie, 0x800
-  csrsi mstatus, 0x8
+  csrsi mie, 0x080
+  /* csrci mie, 0x800 */
+  csrci mstatus, 0x8
 
   call boot_card
   nop
@@ -194,9 +198,9 @@ TYPE_FUNC(RISCV_Exception_default)
 SYM(RISCV_Exception_default):
   nop
 trap_entry:
-	nop
+  addi    t6, t6, 5
   csrci mstatus, 0x8
-  addi sp, sp, -32*REGBYTES
+  addi sp, sp, -34*REGBYTES
   SREG x1, 1*REGBYTES(sp)
   SREG x2, 2*REGBYTES(sp)
   SREG x3, 3*REGBYTES(sp)
@@ -228,16 +232,30 @@ trap_entry:
   SREG x29, 29*REGBYTES(sp)
   SREG x30, 30*REGBYTES(sp)
   SREG x31, 31*REGBYTES(sp)
+  
+  csrr t0, mepc
+  SREG t0, 32*REGBYTES(sp)
 
-  csrr a0, mcause
+  csrr t0, mcause
+  SREG t0, 33*REGBYTES(sp)
+
+/*  csrr a0, mcause
   csrr a1, mepc
-  mv a2, sp
+  mv a2, sp */
   call handle_trap_new
-  csrw mepc, a0
+/*  csrw mepc, a0 */
 
 
-  li t0, 0x00001800
-  csrs mstatus, t0
+/*  li t0, 0x00001800
+  csrs mstatus, t0 */
+
+
+  LREG t0, 32*REGBYTES(sp)
+  csrw mepc, t0
+ 
+  LREG t0, 33*REGBYTES(sp)
+  csrw mcause, t0
+
 
   LREG x1, 1*REGBYTES(sp)
   LREG x2, 2*REGBYTES(sp)
@@ -271,7 +289,7 @@ trap_entry:
   LREG x30, 30*REGBYTES(sp)
   LREG x31, 31*REGBYTES(sp) 
 
-  addi sp, sp, 32*REGBYTES
-  csrsi mstatus, 0x8
 
+  
+  addi sp, sp, 34*REGBYTES
   mret

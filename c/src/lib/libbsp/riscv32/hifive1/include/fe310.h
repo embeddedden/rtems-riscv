@@ -19,4 +19,9 @@
 #define USE_HFXOSC
 #define USE_PLL
 
+/* Clock parameters */
+#define FE310_CLOCK_PERIOD 313
+#define CONFIGURE_MICROSECONDS_PER_TICK 9552
+
+
 #endif /* FE310_H */
