@@ -34,6 +34,7 @@
  * SUCH DAMAGE.
  */
 
+#include <bsp/fe310.h>
 #include <bsp/irq.h>
 #include <bsp/irq-generic.h>
 
@@ -91,7 +92,7 @@ void handle_trap_new ()
     asm volatile ("csrr %0, mie": "=r" (mie));
     asm volatile ("csrr %0, mip": "=r" (mip));
     asm volatile ("csrr %0, mbadaddr": "=r" (mtval));
-    volatile uint64_t * mtime = (uint64_t *)0x0200bff8;
+    volatile uint64_t * mtime = (volatile uint64_t *)0x0200bff8;
     if (cause & MCAUSE_INT) { 
       /* an interrupt occurred */
       if ((cause & MCAUSE_MTIME) == MCAUSE_MTIME) {
@@ -99,24 +100,20 @@ void handle_trap_new ()
         asm volatile ("csrci mie, 0x80");
 	    asm volatile ("csrr %0, mie": "=r" (mie));
 	    asm volatile ("csrr %0, mip": "=r" (mip));
-        volatile uint64_t * mtimecmp = (uint64_t *)0x02004000;
-	    if (cntr < 10) {
-	      times[cntr] = *mtime;
-	      cmprs[cntr] = *mtimecmp;
-	    }
-	
-	    (*mtimecmp) = (*mtime) + 0x300;
+        volatile uint64_t * mtimecmp = (volatile uint64_t *)0x02004000;
+	    (*mtimecmp) = (*mtime) + FE310_CLOCK_PERIOD;
 
 	    cntr++;
         asm volatile ("csrsi mie, 0x80");
         asm volatile ("csrr %0, mip": "=r" (mip));	
+        bsp_interrupt_handler_table[1].handler(bsp_interrupt_handler_table[1].arg);
       } else if ((cause & MCAUSE_MEXT) == MCAUSE_MEXT) {
 	      /*External interrupt */
           asm volatile ("csrci mie, 0x800");
           cntr1 += 1;
       } else if ((cause & MCAUSE_MSWI) == MCAUSE_MSWI) {
 	      /* Software interrupt */
-	      volatile uint32_t * msip_reg = 0x02000000;
+	      volatile uint32_t * msip_reg = (volatile uint32_t *) 0x02000000;
 	      *msip_reg = 0;
 	      cntr2 += 1;
       }
