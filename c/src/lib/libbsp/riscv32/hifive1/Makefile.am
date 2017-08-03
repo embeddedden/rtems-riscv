@@ -29,6 +29,7 @@ include_bsp_HEADERS += ../../shared/include/irq-generic.h
 include_bsp_HEADERS += ../../shared/include/irq-info.h
 include_bsp_HEADERS += ../../shared/include/stackalloc.h
 include_bsp_HEADERS += ../../shared/include/console-termios.h
+include_bsp_HEADERS += ../../shared/include/console-polled.h
 include_bsp_HEADERS += include/irq.h
 include_bsp_HEADERS += include/prci.h
 include_bsp_HEADERS += include/fe310.h
@@ -66,23 +67,21 @@ libbsp_a_SOURCES += start/prci.c
 # Shared
 libbsp_a_SOURCES += ../../shared/bootcard.c
 libbsp_a_SOURCES += ../../shared/bspclean.c
-#libbsp_a_SOURCES += ../../shared/bsplibc.c
-#libbsp_a_SOURCES += ../../shared/bsppost.c
 libbsp_a_SOURCES += ../../shared/bsppredriverhook.c
-#libbsp_a_SOURCES += ../../shared/bsppretaskinghook.c
 libbsp_a_SOURCES += ../../shared/gnatinstallhandler.c
 libbsp_a_SOURCES += ../../shared/sbrk.c
 libbsp_a_SOURCES += ../../shared/src/stackalloc.c
 libbsp_a_SOURCES += ../../shared/bspgetworkarea.c
 
 # clock
-libbsp_a_SOURCES += ../../shared/clock_driver_simidle.c
+libbsp_a_SOURCES += clock/clock.c
 
 # Timer
 libbsp_a_SOURCES += timer/timer.c
 
 # console
 libbsp_a_SOURCES += ../../shared/console-termios.c
+libbsp_a_SOURCES += ../../shared/console-polled.c
 libbsp_a_SOURCES += console/fe310-uart.c
 
 # IRQ

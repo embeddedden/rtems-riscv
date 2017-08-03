@@ -14,6 +14,7 @@
 #include <bsp/fe310-gpio.h>
 #include <bsp/fe310.h>
 #include <bsp/fatal.h>
+#include <bsp/console-polled.h>
 
 static void fe310_console_putc (char ch);
 
@@ -24,7 +25,7 @@ fe310_uart_context driver_context = {
 };
 
 
-rtems_device_driver console_initialize(
+rtems_device_driver console_initialize_console(
   rtems_device_major_number  major,
   rtems_device_minor_number  minor,
   void                      *arg
@@ -164,5 +165,40 @@ const rtems_termios_device_handler fe310_uart_handler_polled = {
   .mode = TERMIOS_POLLED
 };
 
+void console_outbyte_polled(
+  int port,
+  char ch
+)
+{
+  fe310_console_putc(ch);   
+}
+
+int console_inbyte_nonblocking(
+  int port
+)
+{
+  return -1;
+}
+
+void console_initialize_hardware (void)
+{
+  volatile fe310_gpio_t * gpio;
+  volatile fe310_uart_t * uregs = (volatile fe310_uart_t *) &FE310_UART0;
+  rtems_status_code sc;
+  //bool ok;
+ 
+  gpio = (volatile fe310_gpio_t *)&FE310_GPIO;
+  gpio->iof_sel &= ~IOF0_UART0_MASK;
+  gpio->iof_en |= ~IOF0_UART0_MASK;
+  
+  
+  uregs->div = hifive1_default_freq / 115200 - 1;
+  uregs->txctrl |= 1;
+  return;
+ 
+}
+
+
+#include <rtems/bspIo.h>
 BSP_output_char_function_type  BSP_output_char = fe310_console_putc;
 
