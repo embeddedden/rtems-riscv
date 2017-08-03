@@ -32,8 +32,6 @@
 #define LIBBSP_RISCV_SIM_H
 
 #include <rtems.h>
-#include <rtems/clockdrv.h>
-#include <rtems/console.h>
 
 #include <bspopts.h>
 #include <bsp/default-initial-extension.h>
@@ -44,13 +42,6 @@
 extern "C" {
 #endif
 
-/* Constants */
-Thread clock_driver_sim_idle_body(uintptr_t);
-#define BSP_IDLE_TASK_BODY clock_driver_sim_idle_body
-
-#define CLOCK_DRIVER_USE_DUMMY_TIMECOUNTER
-
-/* #define Clock_driver_timecounter_tick Clock_driver_timecounter_tick ( void ); */
 
 #ifdef __cplusplus
 }
