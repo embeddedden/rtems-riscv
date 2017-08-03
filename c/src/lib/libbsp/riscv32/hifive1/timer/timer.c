@@ -28,7 +28,6 @@
 #include <bsp.h>
 #include <rtems/btimer.h>
 #include <rtems/score/riscv-utility.h>
-#include <rtems/clockdrv.h>
 
 extern char bsp_start_vector_table_begin[];
 
@@ -70,7 +69,3 @@ void benchmark_timer_disable_subtracting_average_overhead(
   benchmark_timer_find_average_overhead = find_flag;
 }
 
-static void Clock_driver_timecounter_tick ( void )
-{
-  rtems_clock_tick ();
-};
