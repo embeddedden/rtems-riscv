@@ -77,10 +77,6 @@ void Machine_External_ISR ()
     while(1);
 }
 
-static uint32_t cntr = 0;
-static uint32_t cntr1 = 0;
-static uint32_t cntr2 = 0;
-static uint32_t excep = 0; 
 static uint32_t cause, mie, mip, mtval;
 static uint64_t times[10] = {0};
 static uint64_t cmprs[10] = {0};
@@ -97,33 +93,23 @@ void handle_trap_new ()
       /* an interrupt occurred */
       if ((cause & MCAUSE_MTIME) == MCAUSE_MTIME) {
 	/* Timer interrupt */
-        asm volatile ("csrci mie, 0x80");
 	    asm volatile ("csrr %0, mie": "=r" (mie));
 	    asm volatile ("csrr %0, mip": "=r" (mip));
         volatile uint64_t * mtimecmp = (volatile uint64_t *)0x02004000;
 	    (*mtimecmp) = (*mtime) + FE310_CLOCK_PERIOD;
 
-	    cntr++;
-        asm volatile ("csrsi mie, 0x80");
         asm volatile ("csrr %0, mip": "=r" (mip));	
         bsp_interrupt_handler_table[1].handler(bsp_interrupt_handler_table[1].arg);
       } else if ((cause & MCAUSE_MEXT) == MCAUSE_MEXT) {
 	      /*External interrupt */
           asm volatile ("csrci mie, 0x800");
-          cntr1 += 1;
       } else if ((cause & MCAUSE_MSWI) == MCAUSE_MSWI) {
 	      /* Software interrupt */
 	      volatile uint32_t * msip_reg = (volatile uint32_t *) 0x02000000;
 	      *msip_reg = 0;
-	      cntr2 += 1;
       }
     } else {
       /* an exception occurred */
-      excep += 1; /* Exception occurred */
     }
-
-
-
-
 
 }
