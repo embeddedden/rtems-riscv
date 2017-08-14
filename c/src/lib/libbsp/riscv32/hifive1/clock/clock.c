@@ -24,22 +24,27 @@ static void FE310_clock_driver_support_install_isr(
 
 static void FE310_clock_driver_support_at_tick ( void )
 {
-  dummy++;
+    dummy++;
 }
+
+volatile int32_t mie1 = 0;
+volatile int32_t mstatus1 = 0;
+volatile int32_t mip1 = 0;
 
 static void FE310_clock_init ( void )
 {
-  volatile uint64_t * mtime = (uint64_t *)0x0200bff8;
-  volatile uint64_t * mtimecmp = (uint64_t *)0x02004000;
+  volatile uint64_t * mtime = (volatile uint64_t *)0x0200bff8;
+  volatile uint64_t * mtimecmp = (volatile uint64_t *)0x02004000;
   (*mtimecmp) = (*mtime) + FE310_CLOCK_PERIOD + 0x3000;
-  asm volatile ("csrsi mie, 0x80");
+  asm volatile ("csrci mstatus, 0x8");
+  asm volatile ("li t0, 0x80\n\t" 
+                "csrs mie, t0");
   asm volatile ("csrsi mstatus, 0x8");
-  
 }
 
 static void FE310_clock_driver_support_shutdown_hardware( void )
 {
-   dummy++ ;
+    dummy++;
 }
 
 #define Clock_driver_support_initialize_hardware() \
@@ -57,11 +62,4 @@ static void FE310_clock_driver_support_shutdown_hardware( void )
   FE310_clock_driver_support_shutdown_hardware()
 
 #include "../../../shared/clockdrv_shell.h"
-
-/* static void Clock_driver_timecounter_tick ( void )
-{
-  rtems_clock_tick ();
-}
-*/
-
 
