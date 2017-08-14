@@ -2,7 +2,7 @@
 #
 # @file
 #
-# @brief Configure script of LibBSP for riscv_spike BSP.
+# @brief Configure script of LibBSP for riscv HiFive1 BSP.
 #
 
 AC_PREREQ([2.69])
