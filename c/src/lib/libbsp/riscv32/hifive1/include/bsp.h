@@ -42,6 +42,7 @@
 extern "C" {
 #endif
 
+#define BSP_DEFAULT_UNIFIED_WORK_AREAS
 
 #ifdef __cplusplus
 }

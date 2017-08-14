@@ -11,6 +11,9 @@
 
 #include <bsp/fe310-uart.h>
 
+#define FE310
+#define FE3XX
+
 #define FE310_GPIO  (*(volatile fe310_gpio_t*) 0x10012000)
 #define FE310_UART0 (*(volatile fe310_uart_t*) 0x10013000)
 #define FE310_UART1 (*(volatile fe310_uart_t*) 0x10023000)
