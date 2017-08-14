@@ -124,7 +124,7 @@ _end_copy_data:
 
   
 /* 
- * examples of generating clock and software interrupts.
+ * Examples of generating clock and software interrupts.
  * interrupts won't be generated because they are turned off
  */
 irq_gen:
@@ -145,7 +145,7 @@ irq_gen:
   
   li t3, 0x02000000
   li t4, 0x1
-/*  sw t4, 0(t3) */
+  /* sw t4, 0(t3) */
   nop
   
 
@@ -154,9 +154,9 @@ irq_gen:
   csrw mtvec, t0
   li t0, 0x088
   csrs mie, t0
-  csrsi mie, 0x080
-  /* csrci mie, 0x800 */
   csrci mstatus, 0x8
+  csrwi mie, 0x088
+  csrsi mstatus, 0x8
 
   call boot_card
   nop
@@ -198,7 +198,6 @@ TYPE_FUNC(RISCV_Exception_default)
 SYM(RISCV_Exception_default):
   nop
 trap_entry:
-  addi    t6, t6, 5
   csrci mstatus, 0x8
   addi sp, sp, -34*REGBYTES
   SREG x1, 1*REGBYTES(sp)
@@ -239,15 +238,7 @@ trap_entry:
   csrr t0, mcause
   SREG t0, 33*REGBYTES(sp)
 
-/*  csrr a0, mcause
-  csrr a1, mepc
-  mv a2, sp */
   call handle_trap_new
-/*  csrw mepc, a0 */
-
-
-/*  li t0, 0x00001800
-  csrs mstatus, t0 */
 
 
   LREG t0, 32*REGBYTES(sp)
@@ -288,8 +279,12 @@ trap_entry:
   LREG x29, 29*REGBYTES(sp)
   LREG x30, 30*REGBYTES(sp)
   LREG x31, 31*REGBYTES(sp) 
-
-
   
   addi sp, sp, 34*REGBYTES
+
+  csrsi mstatus, 0x8
+  nop
+  nop
+  nop 
+
   mret
