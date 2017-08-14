@@ -25,7 +25,7 @@ fe310_uart_context driver_context = {
 };
 
 
-rtems_device_driver console_initialize_console(
+rtems_device_driver console_initialize(
   rtems_device_major_number  major,
   rtems_device_minor_number  minor,
   void                      *arg
@@ -72,8 +72,9 @@ static bool fe310_uart_first_open (
   volatile fe310_gpio_t * gpio;
   fe310_uart_context * ctx;
   rtems_status_code sc;
-  //bool ok;
 
+
+  /* Configure GPIO to be UART */
   gpio = (volatile fe310_gpio_t *)&FE310_GPIO;
   gpio->iof_sel &= ~IOF0_UART0_MASK;
   gpio->iof_en |= ~IOF0_UART0_MASK;
@@ -84,9 +85,11 @@ static bool fe310_uart_first_open (
     return false;
   }
 
+  /* Set up a baud rate and enable tx and rx */
   ctx = (fe310_uart_context *) base;
   (ctx->regs)->div = hifive1_default_freq / 115200 - 1;
   (ctx->regs)->txctrl |= 1;
+  (ctx->regs)->rxctrl |= 1;
   return true;
 };
 
@@ -103,7 +106,14 @@ static int fe310_uart_poll_read (
   rtems_termios_device_context  *base
 )
 {
-  return 0;
+  fe310_uart_context * ctx = (fe310_uart_context*) base;
+  size_t i;
+  
+  if (((ctx->regs->rxdata) & 0x80000000) != 0) {
+    return -1;
+  } else {
+    return ctx->regs->rxdata;
+  }  
 }
 
 static uint32_t freq = 0;
@@ -132,6 +142,8 @@ static ssize_t fe310_uart_poll_write (
 
   (ctx->regs)->div = hifive1_default_freq / 115200 - 1;
   (ctx->regs)->txctrl |= 1;
+  (ctx->regs)->rxctrl |= 1;
+
   
 
   for (i = 0; i < n; ++i) {
@@ -140,7 +152,7 @@ static ssize_t fe310_uart_poll_write (
     }
     ctx->regs->txdata = buf[i];
   }
-  return;
+  return n;
 }
 
 static void fe310_console_putc (char ch) {
@@ -185,7 +197,6 @@ void console_initialize_hardware (void)
   volatile fe310_gpio_t * gpio;
   volatile fe310_uart_t * uregs = (volatile fe310_uart_t *) &FE310_UART0;
   rtems_status_code sc;
-  //bool ok;
  
   gpio = (volatile fe310_gpio_t *)&FE310_GPIO;
   gpio->iof_sel &= ~IOF0_UART0_MASK;
