@@ -455,7 +455,7 @@ Context_Control_fp  _CPU_Null_fp_context;
  *
  */
 
-#define CPU_STACK_MINIMUM_SIZE  4096
+#define CPU_STACK_MINIMUM_SIZE  700
 
 /*
  *  CPU's worst alignment requirement for data types on a byte boundary.  This
@@ -539,7 +539,7 @@ Context_Control_fp  _CPU_Null_fp_context;
  *
  */
 
-static inline uint32_t riscv_interrupt_disable( void )
+static uint32_t riscv_interrupt_disable( void )
 {
   register uint32_t sstatus;
   register uint32_t temp;
@@ -549,6 +549,10 @@ static inline uint32_t riscv_interrupt_disable( void )
                         "csrw sstatus, %[temp]; \t"
                         : [temp] "=r" (temp) : [sstatus] "r" (sstatus):
                         );
+#elif FE3XX
+  __asm__ __volatile__ ("csrci mstatus, 0x8");
+  sstatus = 0x8;
+  (void)temp;
 #else
   __asm__ __volatile__ ("csrr %[sstatus], mstatus; \t"
                         "andi %[temp], %[sstatus], -2; \t"
@@ -557,23 +561,27 @@ static inline uint32_t riscv_interrupt_disable( void )
                         );
 
 #endif
+
   return sstatus;
 }
 
-static inline void riscv_interrupt_enable(uint32_t level)
+static void riscv_interrupt_enable(uint32_t level)
 {
 #ifdef SEL4
   __asm__ __volatile__ ("csrw sstatus, %[level];"
                         :: [level] "r" (level):);
+#elif FE3XX
+  __asm__ __volatile__ ("csrsi mstatus, 0x8");
 #else
   __asm__ __volatile__ ("csrw mstatus, %[level];"
                         :: [level] "r" (level):);
-
 #endif
 }
 
 #define _CPU_ISR_Disable( _level ) \
-    _level = riscv_interrupt_disable()
+    do { \
+    _level = riscv_interrupt_disable();\
+    } while(0)
 
 /*
  *  Enable interrupts to the previous level (returned by _CPU_ISR_Disable).
