@@ -77,28 +77,18 @@ void Machine_External_ISR ()
     while(1);
 }
 
-static uint32_t cause, mie, mip, mtval;
-static uint64_t times[10] = {0};
-static uint64_t cmprs[10] = {0};
+static uint32_t cause = 0;
+volatile uint64_t * mtimecmp = (volatile uint64_t *)0x02004000;
+volatile uint64_t * mtime = (volatile uint64_t *)0x0200bff8;
 
 void handle_trap_new ()
-{ 
-    int time_val = 0;
+{
     asm volatile ("csrr %0, mcause": "=r" (cause));
-    asm volatile ("csrr %0, mie": "=r" (mie));
-    asm volatile ("csrr %0, mip": "=r" (mip));
-    asm volatile ("csrr %0, mbadaddr": "=r" (mtval));
-    volatile uint64_t * mtime = (volatile uint64_t *)0x0200bff8;
     if (cause & MCAUSE_INT) { 
       /* an interrupt occurred */
       if ((cause & MCAUSE_MTIME) == MCAUSE_MTIME) {
 	/* Timer interrupt */
-	    asm volatile ("csrr %0, mie": "=r" (mie));
-	    asm volatile ("csrr %0, mip": "=r" (mip));
-        volatile uint64_t * mtimecmp = (volatile uint64_t *)0x02004000;
 	    (*mtimecmp) = (*mtime) + FE310_CLOCK_PERIOD;
-
-        asm volatile ("csrr %0, mip": "=r" (mip));	
         bsp_interrupt_handler_table[1].handler(bsp_interrupt_handler_table[1].arg);
       } else if ((cause & MCAUSE_MEXT) == MCAUSE_MEXT) {
 	      /*External interrupt */
