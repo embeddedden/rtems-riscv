@@ -538,8 +538,7 @@ Context_Control_fp  _CPU_Null_fp_context;
  *  level is returned in _level.
  *
  */
-
-static uint32_t riscv_interrupt_disable( void )
+static inline uint32_t riscv_interrupt_disable( void )
 {
   register uint32_t sstatus;
   register uint32_t temp;
@@ -550,8 +549,7 @@ static uint32_t riscv_interrupt_disable( void )
                         : [temp] "=r" (temp) : [sstatus] "r" (sstatus):
                         );
 #elif FE3XX
-  __asm__ __volatile__ ("csrci mstatus, 0x8");
-  sstatus = 0x8;
+  __asm__ volatile ("csrci mstatus, 0x8");
   (void)temp;
 #else
   __asm__ __volatile__ ("csrr %[sstatus], mstatus; \t"
@@ -559,19 +557,17 @@ static uint32_t riscv_interrupt_disable( void )
                         "csrw mstatus, %[temp]; \t"
                         : [temp] "=r" (temp) : [sstatus] "r" (sstatus):
                         );
-
 #endif
-
   return sstatus;
 }
 
-static void riscv_interrupt_enable(uint32_t level)
+static inline void riscv_interrupt_enable(uint32_t level)
 {
 #ifdef SEL4
   __asm__ __volatile__ ("csrw sstatus, %[level];"
                         :: [level] "r" (level):);
 #elif FE3XX
-  __asm__ __volatile__ ("csrsi mstatus, 0x8");
+  __asm__ volatile ("csrsi mstatus, 0x8");
 #else
   __asm__ __volatile__ ("csrw mstatus, %[level];"
                         :: [level] "r" (level):);
@@ -591,7 +587,9 @@ static void riscv_interrupt_enable(uint32_t level)
  */
 
 #define _CPU_ISR_Enable( _level )  \
-  riscv_interrupt_enable( _level )
+    do {\
+      riscv_interrupt_enable( _level ); \
+    } while(0)
 
 /*
  *  This temporarily restores the interrupt to _level before immediately
