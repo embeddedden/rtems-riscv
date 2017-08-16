@@ -80,18 +80,7 @@ SYM(_CPU_Context_switch):
   SREG x31, 124(a0)
 
 
-  csrr t0, mepc
-  SREG t0, 128(a0)
-
-  csrr t0, mcause
-  SREG t0, 132(a0)
-
 SYM(restore):
-  LREG t0, 128(a1)
-  csrw mepc, t0
-
-  SREG t0, 132(a1)
-  csrw mcause, t0
     
   LREG x1, 4(a1)
   LREG x2, 8(a1)
@@ -125,8 +114,11 @@ SYM(restore):
   LREG x30, 120(a1)
   LREG x31, 124(a1)
 
+
   csrsi mstatus, 0x8
-	ret
+  nop
+  nop
+  ret
 
 SYM(_CPU_Context_restore):
   csrci mstatus, 0x8
